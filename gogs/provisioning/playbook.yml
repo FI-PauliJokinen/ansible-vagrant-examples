@@ -19,4 +19,5 @@
     - geerlingguy.ntp
     - geerlingguy.git
     - geerlingguy.mysql
-    - geerlingguy.gogs
+# Our version of gogs
+    - gogs
