@@ -10,3 +10,4 @@ git_install_from_source: false
 mysql_root_password: root
 
 gogs_use_mysql: true
+

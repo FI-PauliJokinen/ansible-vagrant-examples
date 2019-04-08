@@ -18,6 +18,51 @@ To use the vagrant file, you will need to have done the following:
   4. Open a shell prompt (Terminal app on a Mac) and cd into the folder containing the `Vagrantfile`
   5. Run the following command to install the necessary Ansible roles for this profile: `$ ansible-galaxy install -r requirements.yml`
 
+e.g.
+```
+user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
+>cat requirements.yml
+---
+- src: geerlingguy.firewall
+- src: geerlingguy.ntp
+- src: geerlingguy.git
+- src: geerlingguy.mysql
+- src: geerlingguy.gogs
+
+user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
+>ansible-galaxy install geerlingguy.firewall
+- downloading role 'firewall', owned by geerlingguy
+- downloading role from https://github.com/geerlingguy/ansible-role-firewall/archive/2.4.1.tar.gz
+- extracting geerlingguy.firewall to /Users/user/.ansible/roles/geerlingguy.firewall
+- geerlingguy.firewall (2.4.1) was installed successfully
+user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
+>ansible-galaxy install geerlingguy.ntp
+- downloading role 'ntp', owned by geerlingguy
+- downloading role from https://github.com/geerlingguy/ansible-role-ntp/archive/1.6.2.tar.gz
+- extracting geerlingguy.ntp to /Users/user/.ansible/roles/geerlingguy.ntp
+- geerlingguy.ntp (1.6.2) was installed successfully
+user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
+>ansible-galaxy install geerlingguy.git
+- downloading role 'git', owned by geerlingguy
+- downloading role from https://github.com/geerlingguy/ansible-role-git/archive/2.0.4.tar.gz
+- extracting geerlingguy.git to /Users/user/.ansible/roles/geerlingguy.git
+- geerlingguy.git (2.0.4) was installed successfully
+user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
+>ansible-galaxy install geerlingguy.mysql
+- downloading role 'mysql', owned by geerlingguy
+- downloading role from https://github.com/geerlingguy/ansible-role-mysql/archive/2.9.4.tar.gz
+- extracting geerlingguy.mysql to /Users/user/.ansible/roles/geerlingguy.mysql
+- geerlingguy.mysql (2.9.4) was installed successfully
+user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
+>ansible-galaxy install geerlingguy.gogs
+- downloading role 'gogs', owned by geerlingguy
+- downloading role from https://github.com/geerlingguy/ansible-role-gogs/archive/1.4.2.tar.gz
+- extracting geerlingguy.gogs to /Users/user/.ansible/roles/geerlingguy.gogs
+- geerlingguy.gogs (1.4.2) was installed successfully
+ [WARNING]: - dependency geerlingguy.git from role geerlingguy.gogs differs from already installed version (2.0.4),
+skipping
+```
+
 Once all of that is done, you can simply type in `vagrant up`, and Vagrant will create a new VM, install the base box, and configure it.
 
 Once the new VM is up and running (after `vagrant up` is complete and you're back at the command prompt), you can log into it via SSH if you'd like by typing in `vagrant ssh`. Otherwise, the next steps are below.
