@@ -77,6 +77,11 @@ You need to modify your host machine's hosts file (Mac/Linux: `/etc/hosts`; Wind
 
 After that is configured, you could visit `http://gogs:3000/install` in a browser, and you'll see the Gogs installation page. The MySQL root user account's password (configured in `provisioning/vars/main.yml`) is `root`.
 
+You will need to configure gogs URL (localhost:3000) to point to:
+```
+gogs:3000
+```
+
 If you'd like additional assistance editing your hosts file, please read [How do I modify my hosts file?](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file) from Rackspace.
 
 ## Author Information
