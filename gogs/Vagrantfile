@@ -3,8 +3,14 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "geerlingguy/ubuntu1404"
+  if Vagrant.has_plugin?("vagrant-cachier")
+  # Share cache among instances of the same base box.
+    config.cache.scope = :box
+  end
+
   config.ssh.insert_key = false
 
   config.vm.provider :virtualbox do |v|
