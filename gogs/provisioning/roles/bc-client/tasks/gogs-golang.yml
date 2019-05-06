@@ -1,0 +1,158 @@
+---
+# Include variables and define needed variables.
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Ensure unzip is installed.
+  package: name=unzip state=present
+
+- name: Create user for Gogs.
+  user:
+    name: "{{ gogs_user }}"
+    comment: Gogs
+    home: "{{ gogs_user_home }}"
+
+- name: Check if Gogs is already installed.
+  stat: path=/usr/local/bin/gogs
+  register: gogs_bin
+
+- name: Creating local directory for local go environment
+  file:
+    path: "/home/{{ gogs_user }}/local"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+
+- name: Downloading golang package
+  get_url:
+    url: "{{ golang_binary_url }}"
+    dest: "/home/{{ gogs_user }}/local/go.tar.gz"
+    owner: "{{ gogs_user }}"
+    mode: 0755
+
+- name: Extracting golang package
+  unarchive:
+    src: go.tar.gz
+    dest: "/home/{{ gogs_user }}/local"
+    owner: "{{ gogs_user }}"
+
+- name: Setting go environment by providing configured .bashrc 
+  template:
+    src: /bashrc.j2
+    dest: "/home/{{ gogs_user }}/.bashrc"
+    owner: "{{ gogs_user }}"
+    mode: 0644
+
+- name: Creating go directory for gogs source code
+  file:
+    path: "/home/{{ gogs_user }}/go"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+
+- name: Creating src directory for gogs source code
+  file:
+    path: "/home/{{ gogs_user }}/go/src"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+
+- name: Cloning gogs
+- git:
+    repo: http://192.168.33.1:33333/bauli/gogs.git
+    dest: "/home/{{ gogs_user }}/go/src"
+    refspec: '+refs/pull/*:refs/heads/*'
+
+
+
+
+
+- name: Building gogs
+  shell: |
+    groupmod -o -g {{ item['guid'] }} {{ item['username'] }} 
+    do_some_stuff_here
+    and_some_other_stuff
+  with_items: "{{ users }}"
+
+
+
+Install Gogs
+The general way to install Gogs:
+
+# Download and install dependencies
+$ go get -u github.com/gogs/gogs
+
+# Build main program
+$ cd $GOPATH/src/github.com/gogs/gogs
+$ go build
+Build from develop branch
+In case you want to try develop (or any other) branch:
+
+$ mkdir -p $GOPATH/src/github.com/gogs
+$ cd $GOPATH/src/github.com/gogs
+
+# Make sure you don't use "https://github.com/gogs/gogs.git"
+$ git clone --depth=1 -b develop https://github.com/gogs/gogs
+$ cd gogs
+$ go build
+Test Installation
+To make sure Gogs is working:
+
+$ cd $GOPATH/src/github.com/gogs/gogs
+$ ./gogs web
+If you do not see any error messages, hit Ctrl-C to stop Gogs.
+
+Build with Tags
+A couple of things do not come with Gogs automatically, you need to compile Gogs with corresponding build tags.
+
+Available build tags are:
+
+sqlite: SQLite3 database support
+pam: PAM authentication support
+cert: Generate self-signed certificates support
+miniwinsvc: Builtin windows service support (or you can use NSSM to create a service)
+For example, you want to support all of them, first delete directory $GOPATH/pkg/${GOOS}_${GOARCH}/github.com/gogs/gogs and then do:
+
+$ go get -u -tags "sqlite pam cert" github.com/gogs/gogs
+$ cd $GOPATH/src/github.com/gogs/gogs
+$ go build -tags "sqlite pam cert"
+If you get error: fatal error: security/pam_appl.h: No such file or directory, then install missing package via sudo apt-get install libpam0g-dev.
+
+
+
+
+----------------------------
+
+
+
+
+- name: Download Gogs.
+  get_url:
+    url: "{{ gogs_binary_url }}"
+    dest: "{{ gogs_user_home }}/gogs.zip"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+  when: gogs_bin.stat.islnk is not defined
+
+- name: Expand Gogs.
+  unarchive:
+    src: "{{ gogs_user_home }}/gogs.zip"
+    dest: "{{ gogs_user_home }}"
+    group: "{{ gogs_user }}"
+    owner: "{{ gogs_user }}"
+    copy: no
+  when: gogs_bin.stat.islnk is not defined
+
+- include: init-setup.yml
+- include: gogs-mysql.yml
+
+- name: Create Gogs log folder.
+  file:
+    path: "{{ gogs_user_home }}/gogs/log"
+    state: directory
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+
+- name: Ensure Gogs is running.
+  service: name=gogs state=started enabled=yes

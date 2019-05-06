@@ -3,9 +3,10 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "geerlingguy/ubuntu1404"
+#  config.vm.box = "geerlingguy/ubuntu1404"
+  config.vm.box = "geerlingguy/ubuntu1804"
+  config.vm.box_version = "1.0.0"
   if Vagrant.has_plugin?("vagrant-cachier")
   # Share cache among instances of the same base box.
     config.cache.scope = :box
@@ -14,18 +15,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.insert_key = false
 
   config.vm.provider :virtualbox do |v|
-    v.name = "gogs"
+    v.name = "bcc"
     v.memory = 512
     v.cpus = 2
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--ioapic", "on"]
   end
 
-  config.vm.hostname = "gogs"
+  config.vm.hostname = "bcc"
   config.vm.network :private_network, ip: "192.168.33.23"
 
   # Set the name of the VM. See: http://stackoverflow.com/a/17864388/100134
-  config.vm.define :gogs do |gogs|
+  config.vm.define :bcc do |bcc|
   end
 
   # Ansible provisioner.

@@ -11,3 +11,7 @@ mysql_root_password: root
 
 gogs_use_mysql: true
 
+# packages are downloaded from this git host
+package_git_host: "192.168.33.1"
+package_git_port: 33333
+

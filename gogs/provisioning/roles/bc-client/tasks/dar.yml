@@ -1,0 +1,243 @@
+---
+# Include variables and define needed variables.
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Check if rsync library already installed
+  stat: path=/usr/local/bin/gogs
+  register: librsync_bin
+
+- name: Check if dar is already installed.
+  stat: path=/usr/local/bin/dar
+  register: dar_bin
+
+# DAR prerequisites compiler versions
+
+- set_fact:
+    gcc_5: false
+
+- name: gcc
+  package:
+    name: gcc
+    state: present
+  when: not gcc_5
+
+- name: g++
+  package:
+    name: g++
+    state: present
+  when: not gcc_5
+
+- name: "Adding repository for a bit later version of gcc than default for 14.04 - needed for dar to compile correctly"
+  apt_repository:
+    repo: ppa:ubuntu-toolchain-r/test
+    state: present
+  become: yes
+  when: gcc_5
+
+- name: "Ensure gcc v5 is installed for compling dar"
+  apt:
+    name: gcc-5
+    state: present
+    update_cache: yes
+  become: yes
+  when: gcc_5
+
+- name: "Ensure g++ is installed for compling dar"
+  apt:
+    name: g++-5
+    state: present
+  become: yes
+  when: gcc_5
+
+- name: updating alternatives to point to the later gcc versions
+  shell: |
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 1 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+    gcc --version
+    g++ --version
+  become: yes
+  register: compiler_versions
+  when: gcc_5
+
+- name: Showing installed gcc and g++ versions
+  debug:
+    var: compiler_versions.stdout_lines
+
+- name: Creating local directory for local dar environment
+  file:
+    path: "/home/{{ gogs_user }}/dar"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+
+# DAR prerequisites packages
+
+- name: Ensure libz is installed for dar libz compression support
+  package: name=zlib1g-dev state=present
+
+- name: Ensure libz is installed for dar libz compression support
+  package: name=libbz2-dev state=present
+
+- name: Ensure liblzo is installed for dar lzo compression support
+  package: name=liblzo2-dev state=present
+
+- name: Ensure liblzma is installed for dar xz compression support
+  package: name=liblzma-dev state=present
+
+- name: Ensure libgcrypt11-dev is installed for dar encryption support
+  package: name=libgcrypt11-dev state=present
+
+- name: Ensure libgpgme11-dev is installed for dar assymmetric encryption support
+  package: name=libgpgme11-dev state=present
+
+- name: Ensure gnupg2 is installed for dar assymmetric encryption support
+  package: name=gnupg2 state=present
+
+    #- name: Ensure liblzo2-2 is installed for dar lzo compression support
+    #package: name=liblzo2-2 state=present
+
+    #- name: Ensure lzma is installed for dat xz/lzma compression support
+    #package: name=lzma state=present
+
+    #- name: Ensure gnupg2 is installed for dar assymmetric encryption support
+    #package: name=gnupg2 state=present
+
+- name: Ensure doxygen is installed for libdar documentation generation
+  package: name=doxygen state=present
+
+- name: Ensure upx is installed for upx compression support 
+  package: name=upx state=present
+
+- name: Downloading e2fsprogs-1.44.5.tar.gz for dar delta support
+  get_url:
+    url: "{{ e2fsprogs_url }}"
+    dest: "/home/{{ gogs_user }}/dar/e2fsprogs.tar.gz"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+
+- name: Downloading librsync for dar delta support
+  get_url:
+    url: "{{ librsync_binary_url }}"
+    dest: "/home/{{ gogs_user }}/dar/librsync.tar.gz"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+
+- name: Extracting librsync package
+  unarchive:
+    src: "/home/{{ gogs_user }}/dar/librsync.tar.gz"
+    dest: "/home/{{ gogs_user }}/dar"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+    remote_src: yes
+  register: unarchive_result
+
+- name: Showing extraction status
+  debug: 
+    var: unarchive_result
+
+- name: Compiling librsync package
+  shell: |
+    cd /home/{{ gogs_user }}/dar/{{ librsync_version }}
+    ./configure
+    make all check
+  register: librsync_compile
+
+- name: Showing compile status
+  debug: 
+    var: librsync_compile.stdout_lines
+
+- name: Installing librsync package
+  shell: |
+    cd /home/{{ gogs_user }}/dar/{{ librsync_version }}
+    make install
+  become: yes
+  register: librsync_install
+
+- name: Showing librsync install status
+  debug: 
+    var: librsync_install.stdout_lines
+
+# DAR itself
+
+- set_fact:
+    gcc_5: false
+
+- name: gcc
+  package:
+    name: gcc
+    state: present
+  when: not gcc_5
+
+- name: g++
+  package:
+    name: g++
+    state: present
+  when: not gcc_5
+
+- name: "Adding repository for a bit later version of gcc than default for 14.04 - needed for dar to compile correctly"
+  apt_repository:
+    repo: ppa:ubuntu-toolchain-r/test
+    state: present
+  become: yes
+  when: gcc_5
+
+- name: "Ensure gcc v5 is installed for compling dar"
+  apt:
+    name: gcc-5
+    state: present
+    update_cache: yes
+  become: yes
+  when: gcc_5
+
+- name: "Ensure g++ is installed for compling dar"
+  apt:
+    name: g++-5
+    state: present
+  become: yes
+  when: gcc_5
+
+- name: updating alternatives to point to the later gcc versions
+  shell: |
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 1 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+    gcc --version
+    g++ --version
+  become: yes
+  register: compiler_versions
+  when: gcc_5
+
+- name: Showing installed gcc and g++ versions
+  debug:
+    var: compiler_versions
+
+- name: Downloading dar package
+  get_url:
+    url: "{{ dar_binary_url }}"
+    dest: "/home/{{ gogs_user }}/dar/dar.tar.gz"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+
+- name: Extracting dar package
+  unarchive:
+    src: "/home/{{ gogs_user }}/dar/dar.tar.gz"
+    dest: "/home/{{ gogs_user }}/dar"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+    remote_src: yes
+
+- name: Compiling dar 
+  shell: |
+    cd /home/{{ gogs_user }}/dar/dar-*
+    ./configure --enable-debug
+    make 
+  register: tar_compile_status
+
+- name: Showing installed gcc and g++ versions
+  debug:
+    var: tar_compile_status.stdout_lines
+
