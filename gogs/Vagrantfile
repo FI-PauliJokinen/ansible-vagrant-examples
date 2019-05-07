@@ -10,6 +10,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if Vagrant.has_plugin?("vagrant-cachier")
   # Share cache among instances of the same base box.
     config.cache.scope = :box
+    config.cache.synced_folder_opts = {
+      owner: "_apt",
+      group: "_apt"
+    }
   end
 
   config.ssh.insert_key = false

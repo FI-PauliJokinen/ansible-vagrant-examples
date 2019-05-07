@@ -62,6 +62,7 @@
 - name: Showing installed gcc and g++ versions
   debug:
     var: compiler_versions.stdout_lines
+  when: gcc_5
 
 - name: Creating local directory for local dar environment
   file:
@@ -72,6 +73,12 @@
     group: "{{ gogs_user }}"
 
 # DAR prerequisites packages
+
+- name: Ensure cmake is installed 
+  package: name=cmake state=present
+
+- name: Ensure libpopt-dev is installed required by both librsync and dar
+  package: name=libpopt-dev state=present
 
 - name: Ensure libz is installed for dar libz compression support
   package: name=zlib1g-dev state=present
@@ -109,13 +116,40 @@
 - name: Ensure upx is installed for upx compression support 
   package: name=upx state=present
 
-- name: Downloading e2fsprogs-1.44.5.tar.gz for dar delta support
+- name: Downloading e2fsprogs-1.44.5.tar.gz for dar ext2/ext3/ext4 features support
   get_url:
     url: "{{ e2fsprogs_url }}"
     dest: "/home/{{ gogs_user }}/dar/e2fsprogs.tar.gz"
     owner: "{{ gogs_user }}"
     group: "{{ gogs_user }}"
     mode: 0755
+
+- name: Extracting e2fsprogs package
+  unarchive:
+    src: "/home/{{ gogs_user }}/dar/e2fsprogs.tar.gz"
+    dest: "/home/{{ gogs_user }}/dar"
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+    remote_src: yes
+
+- name: Compiling e2fsprogs package
+  shell: |
+    cd /home/{{ gogs_user }}/dar/{{ e2fsprogs_version }}
+    mkdir build
+    cd build
+    ../configure
+    make 
+    make check
+
+- name: Installing e2fsprogs package
+  shell: |
+    cd /home/{{ gogs_user }}/dar/{{ e2fsprogs_version }}
+    mkdir build
+    cd build
+    ../configure
+    make 
+    make check
 
 - name: Downloading librsync for dar delta support
   get_url:
@@ -142,8 +176,9 @@
 - name: Compiling librsync package
   shell: |
     cd /home/{{ gogs_user }}/dar/{{ librsync_version }}
-    ./configure
-    make all check
+    cmake .
+    make 
+    make check
   register: librsync_compile
 
 - name: Showing compile status

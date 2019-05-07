@@ -1,0 +1,65 @@
+---
+
+# Cloning duplicati
+
+- name: Creating duplicati directory for duplicati source code
+  file:
+    path: "/home/{{ gogs_user }}/duplicati"
+    state: directory
+    mode: 0755
+
+- name: Cloning duplicati
+  git:
+    repo: http://192.168.33.1:33333/bauli/duplicati.git
+    dest: "/home/{{ gogs_user }}/duplicati"
+    refspec: '+refs/pull/*:refs/heads/*'
+  become_user: "{{ gogs_user }}"
+  become: yes
+
+- fail:
+    msg: "temp stop point - remove when further in development"
+
+# Configuring compilation and run environment for duplicati
+
+- name: Ensure gnupg is installed.
+  package: name=gnupg state=present
+
+- name: Ensure ca-certificates is installed.
+  package: name=ca-certificates state=present
+
+- name: Adding mono repository to the system
+  shell: |
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+    echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+  args:
+    executable: /bin/bash
+  become: yes
+
+- name: Test
+  shell: |
+    cat /etc/apt/sources.list.d/mono-official-stable.list
+  args:
+    executable: /bin/bash
+  become: yes
+  register: cat_apt_list
+
+- debug
+    var: cat_apt_list.stdout_lines
+
+- name: apt update 
+  shell: |
+    sudo apt update
+  args:
+    executable: /bin/bash
+  become: yes
+
+- name: Ensure mono-devel is installed, this will take a lot of time... A LOT !!! - it does heavy compiling....
+  package: name=mono-devel state=present
+
+- name: Ensure mono-complete is installed for most of the package - if needed I do not know....
+  package: name=mono-complete state=present
+
+- name: Ensure mono-xsp4 is installed for .NET ASP support - if needed I do not know...
+  package: name=mono-xsp4 state=present
+
+
