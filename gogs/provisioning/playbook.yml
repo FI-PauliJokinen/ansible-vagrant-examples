@@ -19,6 +19,4 @@
     - geerlingguy.ntp
     - geerlingguy.git
 #    - geerlingguy.mysql
-# Our version of gogs
-#    - gogs
     - bc-client

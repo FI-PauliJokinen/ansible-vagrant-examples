@@ -1,0 +1,50 @@
+---
+# Include variables and define needed variables.
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Creating local directory for local go environment
+  file:
+    path: "/home/{{ gogs_user }}/local"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+
+- name: Check if go is already extracted
+  stat: path="{{ gogs_user_home}}/local/go/test/zerodivide.go"
+  register: go_extracted_stat
+
+- name: go extraction status
+  debug:
+    var: go_extracted_stat
+
+- set_fact: 
+    go_extracted: false
+
+- set_fact:
+    go_extracted: true
+  when: go_extracted_stat.stat.exists and go_extracted_stat.stat.checksum == '9bac93475601df0485e253a4374755769c072df8'
+
+- name: Downloading golang package
+  get_url:
+    url:  "{{ golang_binary_url }}"
+    dest: "/home/{{ gogs_user }}/local/go.tar.gz"
+    owner: "{{ gogs_user }}"
+    mode: 0755
+  when: not go_extracted 
+
+- name: Extracting golang package
+  unarchive:
+    src:  "/home/{{ gogs_user }}/local/go.tar.gz"
+    dest: "/home/{{ gogs_user }}/local"
+    owner: "{{ gogs_user }}"
+    remote_src: yes
+  when: not go_extracted 
+
+- name: Setting go environment by providing configured .bashrc 
+  template:
+    src:  "bashrc.j2"
+    dest: "/home/{{ gogs_user }}/.bashrc"
+    owner: "{{ gogs_user }}"
+    mode: 0644
+

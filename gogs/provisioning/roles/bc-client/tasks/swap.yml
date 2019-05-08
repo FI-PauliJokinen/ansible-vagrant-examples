@@ -1,0 +1,19 @@
+---
+
+- name: Creating 0.5 GB swap file and swap on it in addition to exising swap
+  shell: |
+    swapon --show
+    echo
+    dd if=/dev/zero of=/home/vagrant/swapfile bs=1024 count=524288
+    chmod 600 /home/vagrant/swapfile
+    mkswap /home/vagrant/swapfile
+    swapon /home/vagrant/swapfile
+    echo
+    swapon --show
+  register: swap_status
+  become: yes
+
+- debug:
+    var: swap_status.stdout_lines
+  become: yes
+

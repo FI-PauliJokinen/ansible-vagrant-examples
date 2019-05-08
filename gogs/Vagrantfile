@@ -20,7 +20,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider :virtualbox do |v|
     v.name = "bcc"
-    v.memory = 512
+#    v.memory = 512
+#    v.memory = 1024
+    v.memory = 1536
     v.cpus = 2
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--ioapic", "on"]
@@ -39,6 +41,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ansible.playbook = "provisioning/playbook.yml"
     ansible.inventory_path = "provisioning/inventory"
     ansible.become = true
+#    ansible.tags = "duplicati"
+#    ansible.tags = "mkswap"
+    ansible.skip_tags = ["mono1","mono2","mono3","mono4","duplicati_build","gogs_build"]
   end
 
 end

@@ -1,0 +1,81 @@
+---
+# Include variables and define needed variables.
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- include: swap.yml
+  tags: mkswap
+
+- name: Ensure acl is installed to overcome ansible become challenges to non privileged user
+  package: name=acl state=present
+
+- name: Ensure unzip is installed.
+  package: name=unzip state=present
+
+- name: Create user for Gogs.
+  user:
+    name: "{{ gogs_user }}"
+    comment: Gogs
+    home: "{{ gogs_user_home }}"
+    shell: /bin/bash
+
+- name: Installing duplicati and .NET runtime for it
+  include: duplicati.yml
+  tags: duplicati
+
+- name: Check if Gogs is already installed.
+  stat: path=/usr/local/bin/gogs
+  register: gogs_bin
+
+- name: Ensure dar is installed 
+  package: name=dar state=present
+
+- include: golang.yml
+
+- name: Ensure libpam0g-dev is installed required by go build for gogs with tag pam
+  package: name=libpam0g-dev state=present
+
+- name: Creating directories for gogs source code
+  file:
+    path: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+
+- name: Cloning gogs
+  git:
+    repo: http://192.168.33.1:33333/bauli/gogs.git
+    dest: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
+    refspec: '+refs/pull/*:refs/heads/*'
+  become_user: "{{ gogs_user }}"
+  become: yes
+
+- name: Building gogs
+  shell: |
+    source "/home/{{ gogs_user }}/.bashrc"
+    cd "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
+    go build -tags "sqlite pam cert"
+  args:
+    executable: /bin/bash
+  become_user: "{{ gogs_user }}"
+  become: yes
+  tags: gogs_build
+
+- name: Create Gogs log folder.
+  file:
+    path: "{{ gogs_user_home }}/gogs/log"
+    state: directory
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+    mode: 0755
+
+- include: init-setup.yml
+
+- name: Ensure Gogs is running.
+  service: name=gogs state=started enabled=yes
+
+#- name: Starting gogs
+#  shell: |
+#  cd "/home/{{ gogs_user }}/go/src/gogs"
+#  ./gogs web
+
