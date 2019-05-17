@@ -10,6 +10,11 @@
     owner: "{{ gogs_user }}"
     group: "{{ gogs_user }}"
 
+- name: Check if duplicati has been cloned successfully already
+  stat: 
+    path: "/home/{{ gogs_user }}/duplicati/ansible_git_clone_complete"
+  register: duplicati_clone
+
 - name: Cloning duplicati
   git:
     repo: http://192.168.33.1:33333/bauli/duplicati.git
@@ -17,6 +22,12 @@
     refspec: '+refs/pull/*:refs/heads/*'
   become_user: "{{ gogs_user }}"
   become: yes
+  when: not duplicati_clone.stat.exists
+
+- name: Adding a file to denote duplicati has been completely cloned
+  file: 
+    path: "/home/{{ gogs_user }}/duplicati/ansible_git_clone_complete"
+    state: touch
 
 # Configuring compilation and run environment for duplicati
 
@@ -29,6 +40,11 @@
 - name: Ensure debhelper is installed for compiling dublicati debian packages
   package: name=debhelper state=present
 
+- name: "Checking if /etc/apt/sources.list.d/mono-official-stable.list is present"
+  stat:
+    path: "/etc/apt/sources.list.d/mono-official-stable.list"
+  register: mono_list
+
 - name: Adding mono repository to the system
   shell: |
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
@@ -36,17 +52,20 @@
   args:
     executable: /bin/bash
   become: yes
+  when: not mono_list.stat.exists
+  register: mono
 
-- name: Test
-  shell: |
-    cat /etc/apt/sources.list.d/mono-official-stable.list
-  args:
-    executable: /bin/bash
-  become: yes
-  register: cat_apt_list
-
-- debug:
-    var: cat_apt_list.stdout_lines
+  #- name: Test
+  #  shell: |
+  #    cat /etc/apt/sources.list.d/mono-official-stable.list
+  #  args:
+  #    executable: /bin/bash
+  #  become: yes
+  #  register: cat_apt_list
+  #
+  #- debug:
+  #    var: cat_apt_list.stdout_lines
+  #
 
 - name: apt update 
   shell: |
@@ -54,6 +73,7 @@
   args:
     executable: /bin/bash
   become: yes
+  when: mono.changed
 
 - name: Ensure mono-devel is installed, this will take a lot of time... A LOT !!! - it does heavy compiling....
   package: name=mono-devel state=present
@@ -63,6 +83,14 @@
   package: name=nuget state=present
   tags: mono1
 
+- name: Getting nuget version
+  shell: |
+    nuget help | head -1
+  register: nuget_version
+
+- debug:
+    var: nuget_version
+
 - name: update nuget
   shell: |
     nuget update -self
@@ -70,11 +98,13 @@
     executable: /bin/bash
   become: yes
   register: nuget_update
+  when: '"NuGet Version: 5.0.2.5988" not in nuget_version.stdout'
   tags: mono1
 
 - debug:
     var: nuget_update.stdout_lines
   tags: mono1
+  when: nuget_update.changed
 
 - name: Ensure gtk_sharp2 is installed for dublicati UI
   package: name=gtk-sharp2 state=present
@@ -88,6 +118,14 @@
   package: name=mono-xsp4 state=present
   tags: mono4
 
+- name: Check if debian packages have been build 
+  stat: 
+    path: "/home/{{ gogs_user }}/duplicati/ansible_debian_packages_build"
+  register: duplicati_debian
+
+- debug:
+    var: duplicati_debian
+
 - name: Building duplicati debian packages
   shell: |
     cd /home/{{ gogs_user }}/duplicati/Installer/debian 
@@ -95,6 +133,12 @@
   args:
     executable: /bin/bash
   become: yes
+  when: not duplicati_debian.stat.exists
   tags: dublicati_build
+
+- name: Adding a file to denote duplicati has been completely cloned
+  file: 
+    path: "/home/{{ gogs_user }}/duplicati/ansible_debian_packages_build"
+    state: touch
 
 

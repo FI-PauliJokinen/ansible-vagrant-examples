@@ -15,8 +15,8 @@
       become: yes
 
   roles:
-    - geerlingguy.firewall
-    - geerlingguy.ntp
+#    - geerlingguy.firewall
+#    - geerlingguy.ntp
     - geerlingguy.git
 #    - geerlingguy.mysql
     - bc-client

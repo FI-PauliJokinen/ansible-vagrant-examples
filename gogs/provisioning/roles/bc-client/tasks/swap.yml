@@ -1,7 +1,12 @@
 ---
+- name: checking the existence of the swap file
+  stat: 
+    path: "/home/vagrant/swapfile"
+  register: swapfile
 
 - name: Creating 0.5 GB swap file and swap on it in addition to exising swap
   shell: |
+    echo before adding swap
     swapon --show
     echo
     dd if=/dev/zero of=/home/vagrant/swapfile bs=1024 count=524288
@@ -9,11 +14,13 @@
     mkswap /home/vagrant/swapfile
     swapon /home/vagrant/swapfile
     echo
+    echo after adding swap
     swapon --show
   register: swap_status
   become: yes
+  when: not swapfile.stat.exists
 
 - debug:
     var: swap_status.stdout_lines
-  become: yes
+  when: swap_status.changed
 
