@@ -1,0 +1,111 @@
+---
+# Vim environment setup which avoids unecessary package download and extraction
+# Warning: if .vimrc exists already this only updates the vimrc
+
+- name: Check if powerline fonts have been cloned successfully already
+  stat: 
+    path: "/home/{{ username }}/powerlinefonts/ansible_git_clone_complete"
+  become_user: "{{ username }}"
+  become: yes
+  register: fonts_clone
+
+- name: Create a directory for cloning powerline fonts
+  file:
+    path: "/home/{{ username }}/.powerlinefonts"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    state: directory
+  become_user: "{{ username }}"
+  become: yes
+
+- name: Cloning powerline fonts
+  git:
+    repo: http://192.168.33.1:33333/bauli/fonts.git
+    dest: "/home/{{ username }}/.powerlinefonts"
+    refspec: '+refs/pull/*:refs/heads/*'
+  become_user: "{{ username }}"
+  become: yes
+  when: not fonts_clone.stat.exists
+
+- name: Adding a file to denote powerline fonts have been completely cloned
+  file: 
+    path: "/home/{{ username }}/.powerlinefonts/ansible_git_clone_complete"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    state: touch
+  register: fonts_cloned
+  become: yes
+
+- name: install powerline fonts
+  shell: |
+    cd "/home/{{ username }}/.powerlinefonts"
+    ./install.sh
+  become_user: "{{ username }}"
+  become: yes
+  when: fonts_cloned.changed
+  register: fonts_install
+
+- debug:
+    var: fonts_install.stdout_lines
+  when: fonts_install.changed
+
+- name: Check if vimrc is present
+  stat: path="/home/{{ username }}/.vimrc"
+  become_user: "{{ username }}"
+  become: yes
+  register: vimrc
+
+- name: vim environment status 
+  debug:
+    var: vimrc
+  when: debug is defined
+
+- name: Downloading dotvim package which is effectively .vim directory
+  get_url:
+    url:  "{{ dotvim_url }}"
+    dest: "/home/{{ username }}/dotvim.tar.gz"
+    owner: "{{ username }}"
+    mode: 0755
+  become_user: "{{ username }}"
+  become: yes
+  when: not vimrc.stat.exists
+  register: dotvim
+
+- name: Ensure .vim is overridden
+  file:
+    path: "/home/{{ username }}/.vim"
+    state: absent
+  become_user: "{{ username }}"
+  become: yes
+  when: dotvim.changed
+
+- name: Extracting dotvim package to create .vim directory
+  unarchive:
+    src:  "/home/{{ username }}/dotvim.tar.gz"
+    dest: "/home/{{ username }}/"
+    owner: "{{ username }}"
+    remote_src: yes
+  become_user: "{{ username }}"
+  become: yes
+  when: 
+  - not vimrc.stat.exists
+  - dotvim.changed
+
+- name: Deleting the dotvim package after its extraction
+  file: 
+    path: "/home/{{ username }}/dotvim.tar.gz"
+    state: absent
+  become_user: "{{ username }}"
+  become: yes
+
+- name: Setting vim environment by providing configured .vimrc 
+  template:
+    src:  "vimrc.j2"
+    dest: "/home/{{ username }}/.vimrc"
+    owner: "{{ username }}"
+    mode: 0644
+  become_user: "{{ username }}"
+  become: yes
+  # creating vimrc only after .vim has been succesfully added and extracted
+  # creation of vimrc seals the success of the entire task, which is verified to skip tasks on the following runs
+

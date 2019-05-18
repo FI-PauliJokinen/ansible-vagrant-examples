@@ -1,0 +1,4 @@
+---
+- name: Improving development environment by vim configuration
+  include: vimdev.yml
+

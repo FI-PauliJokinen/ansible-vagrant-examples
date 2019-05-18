@@ -1,0 +1,4 @@
+---
+# vim stuff
+dotvim_url: http://{{ package_git_host }}:{{ package_git_port }}/packages/dotvim.tar.gz
+
