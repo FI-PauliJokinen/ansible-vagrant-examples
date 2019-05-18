@@ -20,3 +20,6 @@
     - geerlingguy.git
 #    - geerlingguy.mysql
     - bc-client
+    - role: vimdev
+      username: git
+

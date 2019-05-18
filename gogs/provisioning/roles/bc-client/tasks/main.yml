@@ -19,16 +19,9 @@
     home: "{{ gogs_user_home }}"
     shell: /bin/bash
 
-- include: vimdev.yml
-  tags: vimdev
-
 - name: Installing duplicati and .NET runtime for it
   include: duplicati.yml
   tags: duplicati
-
-- name: Check if Gogs is already installed.
-  stat: path=/usr/local/bin/gogs
-  register: gogs_bin
 
 - name: Ensure dar is installed 
   package: name=dar state=present
@@ -45,13 +38,27 @@
     mode: 0755
     owner: "{{ gogs_user }}"
 
-- name: Cloning gogs
+- name: Check if gogs has been cloned successfully already
+  stat: 
+    path: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs/ansible_git_clone_complete"
+  register: gogs_clone
+
+- name: Cloning gogs - skipping if already cloned
   git:
     repo: http://192.168.33.1:33333/bauli/gogs.git
     dest: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
     refspec: '+refs/pull/*:refs/heads/*'
   become_user: "{{ gogs_user }}"
   become: yes
+  when: not gogs_clone.stat.exists
+  register: gogs_clone
+
+- name: Adding a file to denote gogs has been completely cloned
+  file: 
+    path: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs/ansible_git_clone_complete"
+    state: touch
+  when: gogs_clone.changed
+  register: gogs_clone
 
 - name: Building gogs
   shell: |
@@ -63,8 +70,9 @@
   become_user: "{{ gogs_user }}"
   become: yes
   tags: gogs_build
+  when: gogs_clone.changed
 
-- name: Create Gogs log folder.
+- name: Ensure gogs log folder exists
   file:
     path: "{{ gogs_user_home }}/gogs/log"
     state: directory
@@ -72,13 +80,9 @@
     group: "{{ gogs_user }}"
     mode: 0755
 
-- include: init-setup.yml
-
-- name: Ensure Gogs is running.
-  service: name=gogs state=started enabled=yes
-
-#- name: Starting gogs
-#  shell: |
-#  cd "/home/{{ gogs_user }}/go/src/gogs"
-#  ./gogs web
+    #- name: Starting gogs
+    #  shell: |
+    #  cd "/home/{{ gogs_user }}/go/src/gogs"
+    #  ./gogs web 2>&1 >> "{{ gogs_user_home }}/gogs/log" &
+    #
 

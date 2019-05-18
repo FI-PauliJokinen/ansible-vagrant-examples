@@ -41,10 +41,14 @@
     remote_src: yes
   when: not go_extracted 
 
+- lineinfile:
+    path: "/home/{{ gogs_user }}/.bashrc"
+    line: 'source $HOME/.gorc'
+
 - name: Setting go environment by providing configured .bashrc 
   template:
-    src:  "bashrc.j2"
-    dest: "/home/{{ gogs_user }}/.bashrc"
+    src:  "gorc.j2"
+    dest: "/home/{{ gogs_user }}/.gorc"
     owner: "{{ gogs_user }}"
     mode: 0644
 
