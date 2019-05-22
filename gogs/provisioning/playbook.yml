@@ -19,7 +19,8 @@
 #    - geerlingguy.ntp
     - geerlingguy.git
 #    - geerlingguy.mysql
-    - bc-client
+    - bc
+# adding some colour to the vim environment
     - role: vimdev
       username: git
 
