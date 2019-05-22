@@ -45,7 +45,7 @@
 
 - name: Cloning gogs - skipping if already cloned
   git:
-    repo: http://192.168.33.1:33333/bauli/gogs.git
+    repo: http://192.168.33.1:33333/bauli/mygogs.git
     dest: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
     refspec: '+refs/pull/*:refs/heads/*'
   become_user: "{{ gogs_user }}"
