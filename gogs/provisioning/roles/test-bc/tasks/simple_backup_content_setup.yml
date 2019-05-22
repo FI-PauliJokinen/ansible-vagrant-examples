@@ -1,0 +1,30 @@
+---
+
+- name: Check if simple backup user content setup has already been done
+  stat: 
+    path: "/home/{{ backup_user }}/ansible_simple_content_cloned"
+  register: content_clone
+
+- name: Cloning duplicati as simle content
+  git:
+    repo: http://192.168.33.1:33333/bauli/duplicati.git
+    dest: "/home/{{ backup_user }}/simple"
+    refspec: '+refs/pull/*:refs/heads/*'
+  become_user: "{{ backup_user }}"
+  become: yes
+  when: not content_clone.stat.exists
+
+- name: Adding a file to denote duplicati i.e. simple backup content has been completely cloned
+  file: 
+    path: "/home/{{ backup_user }}/ansible_simple_content_cloned"
+    owner: "{{ backup_user }}"
+    group: "{{ backup_user }}"
+    state: touch
+  become: yes
+
+- name: deleting .git directory just in case for these simple tests - most likely unnecessary precaution
+  file:
+    path: "/home/{{ backup_user }}/simple/.git"
+    state: absent
+  become: yes
+

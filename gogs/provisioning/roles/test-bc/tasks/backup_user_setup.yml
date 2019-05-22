@@ -1,0 +1,9 @@
+---
+- name: Create user for backup user
+  user:
+    name: "{{ backup_user }}"
+    comment: Backup user for bc-client testing
+    home: "{{ backup_user_home }}"
+    shell: /bin/bash
+  become: yes
+

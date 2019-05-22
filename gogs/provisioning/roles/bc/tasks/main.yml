@@ -19,10 +19,11 @@
     home: "{{ gogs_user_home }}"
     shell: /bin/bash
 
-- name: Installing duplicati and .NET runtime for it
-  include: duplicati.yml
-  tags: duplicati
-
+    #- name: Installing duplicati and .NET runtime for it
+    #  include: duplicati.yml
+    #  tags: duplicati
+    #
+    
 - name: Ensure dar is installed 
   package: name=dar state=present
 

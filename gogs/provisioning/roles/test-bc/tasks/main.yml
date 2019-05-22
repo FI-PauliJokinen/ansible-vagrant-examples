@@ -1,0 +1,8 @@
+---
+
+- name: Backup user creation
+  include: backup_user_setup.yml
+
+- name: Backup content creation
+  include: simple_backup_content_setup.yml
+

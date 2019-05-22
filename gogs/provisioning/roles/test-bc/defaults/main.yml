@@ -1,0 +1,5 @@
+---
+
+backup_user: backup
+backup_user_home: /home/backup
+
