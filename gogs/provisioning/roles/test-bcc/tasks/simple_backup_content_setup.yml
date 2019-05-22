@@ -5,7 +5,7 @@
     path: "/home/{{ backup_user }}/ansible_simple_content_cloned"
   register: content_clone
 
-- name: Cloning duplicati as simle content
+- name: Cloning duplicati as simple content
   git:
     repo: http://192.168.33.1:33333/bauli/duplicati.git
     dest: "/home/{{ backup_user }}/simple"

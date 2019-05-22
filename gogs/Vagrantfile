@@ -23,8 +23,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    v.memory = 512
 #    v.memory = 1024
 #    v.memory = 2048
-    v.memory = 2560
-#    v.memory = 1536
+#    v.memory = 2560
+    v.memory = 1536
     v.cpus = 2
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--ioapic", "on"]

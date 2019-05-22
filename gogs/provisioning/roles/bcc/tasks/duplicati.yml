@@ -17,7 +17,7 @@
 
 - name: Cloning duplicati
   git:
-    repo: http://192.168.33.1:33333/bauli/duplicati.git
+    repo: http://bcs:33333/bauli/duplicati.git
     dest: "/home/{{ gogs_user }}/duplicati"
     refspec: '+refs/pull/*:refs/heads/*'
   become_user: "{{ gogs_user }}"

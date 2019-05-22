@@ -17,6 +17,7 @@
 - name: go extraction status
   debug:
     var: go_extracted_stat
+  when: debug is defined
 
 - set_fact: 
     go_extracted: false

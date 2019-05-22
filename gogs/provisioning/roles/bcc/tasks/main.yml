@@ -12,6 +12,12 @@
 - name: Ensure unzip is installed.
   package: name=unzip state=present
 
+- name: Ensure sqlite is installed.
+  package: name=sqlite3 state=present
+
+- name: Ensure sqlite is installed.
+  package: name=gcc state=present
+
 - name: Create user for Gogs.
   user:
     name: "{{ gogs_user }}"
@@ -23,7 +29,12 @@
     #  include: duplicati.yml
     #  tags: duplicati
     #
-    
+
+- name: Adding bcs i.e. byte care server to /etc/hosts
+  lineinfile:
+    path: "/etc/hosts"
+    line: '192.168.33.1 bcs'
+
 - name: Ensure dar is installed 
   package: name=dar state=present
 
@@ -46,7 +57,7 @@
 
 - name: Cloning gogs - skipping if already cloned
   git:
-    repo: http://192.168.33.1:33333/bauli/mygogs.git
+    repo: http://bcs:33333/bauli/mygogs.git
     dest: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
     refspec: '+refs/pull/*:refs/heads/*'
   become_user: "{{ gogs_user }}"
@@ -61,17 +72,49 @@
   when: gogs_clone.changed
   register: gogs_clone
 
+- name: Check if gogs has been build
+  stat: 
+    path: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs/gogs"
+  register: gogs_build
+
+- debug:
+    var: gogs_build
+  when: debug is defined
+
+
+- name: go environment check
+  shell: |
+    cd "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
+    source "/home/{{ gogs_user }}/.gorc"
+    env
+    which go
+  args:
+    executable: /bin/bash
+  become_user: "{{ gogs_user }}"
+  become: yes
+  ignore_errors: yes
+  register: go_env
+
+- debug:
+    var: go_env
+
 - name: Building gogs
   shell: |
-    source "/home/{{ gogs_user }}/.bashrc"
+    source "/home/{{ gogs_user }}/.gorc"
     cd "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs"
-    go build -tags "sqlite pam cert"
+    go build -tags "sqlite cert"
+    #    go build -tags "sqlite pam cert"
   args:
     executable: /bin/bash
   become_user: "{{ gogs_user }}"
   become: yes
   tags: gogs_build
-  when: gogs_clone.changed
+  when: not gogs_build.stat.exists
+
+- name: Freeing memory after compilation that caused a lot of memory being used - this hopefully frees memory at the VirtualBox host
+  shell: |
+    sync; echo 3 > /proc/sys/vm/drop_caches 
+  become: yes
 
 - name: Ensure gogs log folder exists
   file:

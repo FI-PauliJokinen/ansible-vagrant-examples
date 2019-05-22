@@ -67,7 +67,7 @@ user@users-Air:(master) ~/git/ansible-vagrant-examples/gogs
 skipping
 ```
 
-Once all of that is done, you can simply type in `vagrant up`, and Vagrant will create a new VM, install the base box, and configure it.
+Once all of that is done, you can simply type in `vagrant up`, in the vagrant root directory and Vagrant will create a new VM, install the base box, and configure it.
 
 Once the new VM is up and running (after `vagrant up` is complete and you're back at the command prompt), you can log into it via SSH if you'd like by typing in `vagrant ssh`. Otherwise, the next steps are below.
 
@@ -75,15 +75,15 @@ Once the new VM is up and running (after `vagrant up` is complete and you're bac
 
 You need to modify your host machine's hosts file (Mac/Linux: `/etc/hosts`; Windows: `%systemroot%\system32\drivers\etc\hosts`), adding the line below:
 
-    192.168.33.23  gogs
+    192.168.33.23  bcc
 
-(Where `gogs`) is the hostname you have configured in the `Vagrantfile`).
+(Where `bcc`) is the hostname you have configured in the `Vagrantfile`).
 
-After that is configured, you could visit `http://gogs:3000/install` in a browser, and you'll see the Gogs installation page. The MySQL root user account's password (configured in `provisioning/vars/main.yml`) is `root`.
+After that is configured, you could visit `http://bcc:3000/install` in a browser, and you'll see the Gogs installation page. The MySQL root user account's password (configured in `provisioning/vars/main.yml`) is `root`.
 
 You will need to configure gogs URL (localhost:3000) to point to:
 ```
-gogs:3000
+bcc:3000
 ```
 
 If you'd like additional assistance editing your hosts file, please read [How do I modify my hosts file?](http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file) from Rackspace.
@@ -91,3 +91,15 @@ If you'd like additional assistance editing your hosts file, please read [How do
 ## Author Information
 
 Created in 2014 by [Jeff Geerling](https://www.jeffgeerling.com/), author of [Ansible for DevOps](https://www.ansiblefordevops.com/).
+Modified in 2019 by [Pauli Jokinen](https://byte.care)
+
+## Additional instructions:
+
+Should you just want to run ansible scripts for bcc just do:
+vagrant provision
+
+Should you want to run test scripts in vagrant root directory do:
+./testrun.sh
+
+Happy byte caring!
+
