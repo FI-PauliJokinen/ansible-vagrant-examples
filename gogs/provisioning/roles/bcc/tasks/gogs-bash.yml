@@ -1,0 +1,33 @@
+---
+
+# Cloning gogs-bash
+
+- name: Creating gogs-bash directory for gogs-bash source code
+  file:
+    path: "/home/{{ gogs_user }}/gogs-bash"
+    state: directory
+    mode: 0755
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
+
+- name: Check if gogs-bash has been cloned successfully already
+  stat: 
+    path: "/home/{{ gogs_user }}/gogs-bash/ansible_git_clone_complete"
+  register: gogs_bash_clone
+
+- name: Cloning gogs-bash
+  git:
+    repo: http://bcs:33333/bauli/gogs-bash.git
+    dest: "/home/{{ gogs_user }}/gogs-bash"
+    refspec: '+refs/pull/*:refs/heads/*'
+  become_user: "{{ gogs_user }}"
+  become: yes
+  when: not gogs_bash_clone.stat.exists
+
+- name: Adding a file to denote gogs-bash has been completely cloned
+  file: 
+    path: "/home/{{ gogs_user }}/gogs-bash/ansible_git_clone_complete"
+    state: touch
+
+# Environment variables required by gogs-bash are set in .bccrc file
+

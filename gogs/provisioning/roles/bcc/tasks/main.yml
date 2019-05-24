@@ -129,6 +129,9 @@
     group: "{{ gogs_user }}"
     mode: 0755
 
+- name: Installing gogs-bash required and called by bcc cli
+  include: gogs-bash.yml
+
     #- name: Starting gogs
     #  shell: |
     #  cd "/home/{{ gogs_user }}/go/src/gogs"
