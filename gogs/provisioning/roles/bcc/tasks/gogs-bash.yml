@@ -28,6 +28,8 @@
   file: 
     path: "/home/{{ gogs_user }}/gogs-bash/ansible_git_clone_complete"
     state: touch
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
 
 # Environment variables required by gogs-bash are set in .bccrc file
 

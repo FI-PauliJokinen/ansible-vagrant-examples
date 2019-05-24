@@ -28,6 +28,8 @@
   file: 
     path: "/home/{{ gogs_user }}/duplicati/ansible_git_clone_complete"
     state: touch
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
 
 # Configuring compilation and run environment for duplicati
 

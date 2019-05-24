@@ -69,6 +69,8 @@
   file: 
     path: "/home/{{ gogs_user }}/go/src/github.com/gogs/gogs/ansible_git_clone_complete"
     state: touch
+    owner: "{{ gogs_user }}"
+    group: "{{ gogs_user }}"
   when: gogs_clone.changed
   register: gogs_clone
 
