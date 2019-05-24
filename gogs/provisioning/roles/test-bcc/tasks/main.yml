@@ -6,3 +6,9 @@
 - name: Backup content creation
   include: simple_backup_content_setup.yml
 
+- name: test 1
+  include: test-bcc-create-repo-dot-bcc-non-writeable.yml
+
+- name: test 2
+  include: test-bcc-create-repo-dot-bcc-writable.yml
+

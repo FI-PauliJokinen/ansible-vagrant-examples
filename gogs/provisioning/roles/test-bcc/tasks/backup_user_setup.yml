@@ -2,8 +2,35 @@
 - name: Create user for backup user
   user:
     name: "{{ backup_user }}"
-    comment: Backup user for bc-client testing
+    comment: Backup user for bcc testing
     home: "{{ backup_user_home }}"
     shell: /bin/bash
+  become: yes
+
+- name: Setting bcc environment by providing .bccrc
+  template:
+    src:  "bccrc.j2"
+    dest: "/home/{{ backup_user }}/.bccrc"
+    owner: "{{ backup_user }}"
+    mode: 0744
+  become_user: "{{ backup_user }}"
+  become: yes
+
+- name: Deleting existing if any to ensure idenpotent runs with single line only
+  lineinfile:
+    path: "/home/{{ backup_user }}/.bashrc"
+    line: source $HOME/.bccrc
+    state: absent
+  become_user: "{{ backup_user }}"
+  become: yes
+  # otherwise each run of the task would add the line not despite it being there already
+
+- name: Have .bashrc source .bccrc
+  lineinfile:
+    path: "/home/{{ backup_user }}/.bashrc"
+    insertbefore: '.*interactively'
+    state: present
+    line: source $HOME/.bccrc
+  become_user: "{{ backup_user }}"
   become: yes
 

@@ -115,6 +115,11 @@
   shell: |
     sync; echo 3 > /proc/sys/vm/drop_caches 
   become: yes
+# Nope this didn't free up memory... without VBox ballooning service enabled which is available only for Linux hosts
+# The only way to free up memory is to reboot the VM and count on lazy loading on the next start 
+# That will use less memory initially until something memory consuming tasks will be run 
+# That in turn means reboot would be required after each time something memory consumed have been done to keep VB memory footprint at minimum at host OS
+#
 
 - name: Ensure gogs log folder exists
   file:
